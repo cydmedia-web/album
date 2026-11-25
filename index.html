@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link id="browserFavicon" rel="icon" href="">
-  <title>CYD MEDIA - Kho Phương Tiện</title>
+  <title>CYD Media - Kho Phương Tiện</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
@@ -58,63 +58,81 @@
 <body class="min-h-screen flex flex-col">
   <div id="bgOverlay"></div>
 
-  <!-- Header -->
+  <!-- Header 1 hàng gọn tối ưu cả mobile lẫn máy tính -->
   <header class="sticky top-0 z-30 glass border-b" style="border-color: var(--border-color);">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col lg:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-3 cursor-pointer select-none" id="brandTrigger">
-        <div id="brandLogoBox" class="w-11 h-11 rounded-xl accent-bg flex items-center justify-center font-bold text-xl shadow-lg overflow-hidden shrink-0">
+    <div class="max-w-7xl mx-auto px-2.5 sm:px-4 py-2 sm:py-3 flex items-center justify-between gap-1.5 sm:gap-3">
+      <!-- Logo + Tên + Mô tả -->
+      <div class="flex items-center gap-2 cursor-pointer select-none min-w-0 shrink-0 max-w-[42%] sm:max-w-none" id="brandTrigger">
+        <div id="brandLogoBox" class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl accent-bg flex items-center justify-center font-bold text-sm sm:text-lg shadow overflow-hidden shrink-0">
           <i class="fa-solid fa-camera-retro"></i>
         </div>
-        <div>
-          <h1 id="brandTitle" class="font-bold text-lg tracking-wide">CYD MEDIA</h1>
-          <p id="brandSubtitle" class="text-xs" style="color: var(--text-secondary);">Hệ thống trả ảnh chất lượng cao</p>
+        <div class="min-w-0 leading-tight">
+          <h1 id="brandTitle" class="font-bold text-xs sm:text-base tracking-wide truncate">CYD MEDIA</h1>
+          <p id="brandSubtitle" class="text-[10px] sm:text-xs truncate" style="color: var(--text-secondary);">Kho phương tiện</p>
         </div>
       </div>
 
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
-        <!-- Ô lọc thư mục mẹ -->
-        <div id="folderFilterContainer" class="relative sm:w-64">
-          <i class="fa-solid fa-folder-tree absolute left-3.5 top-1/2 -translate-y-1/2 text-xs accent-text pointer-events-none"></i>
+      <!-- Lọc thư mục mẹ + Tìm kiếm chung 1 hàng -->
+      <div class="flex items-center gap-1.5 sm:gap-2.5 flex-1 justify-end min-w-0">
+        <div id="folderFilterContainer" class="relative w-28 sm:w-52 min-w-0 shrink">
+          <i class="fa-solid fa-folder-tree absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-[11px] sm:text-xs accent-text pointer-events-none"></i>
           <select id="folderFilterSelect" onchange="onParentFolderFilterChange()" title="Chọn thư mục mẹ"
-            class="w-full rounded-full pl-9 pr-8 py-2 text-sm focus:outline-none border transition appearance-none cursor-pointer"
+            class="w-full rounded-full pl-7 sm:pl-8 pr-6 sm:pr-7 py-1.5 text-xs sm:text-sm focus:outline-none border transition appearance-none cursor-pointer truncate"
             style="background: rgba(0,0,0,0.28); border-color: var(--border-color); color: var(--text-primary);">
-            <option value="__default__" style="background:#0f172a;color:#f8fafc;">Thư mục mẹ mặc định</option>
+            <option value="__default__" style="background:#0f172a;color:#f8fafc;">Mặc định</option>
           </select>
-          <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color: var(--text-secondary);"></i>
+          <i class="fa-solid fa-chevron-down absolute right-2 sm:right-2.5 top-1/2 -translate-y-1/2 text-[9px] sm:text-[10px] pointer-events-none" style="color: var(--text-secondary);"></i>
         </div>
 
-        <div id="searchContainer" class="relative flex-1 sm:w-72">
-          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-sm" style="color: var(--text-secondary);"></i>
-          <input type="text" id="searchInput" placeholder="Tìm tên của bạn hoặc sự kiện..." 
-            class="w-full rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none border transition"
+        <div id="searchContainer" class="relative flex-1 sm:flex-initial sm:w-64 min-w-0">
+          <i class="fa-solid fa-magnifying-glass absolute left-2.5 sm:left-3.5 top-1/2 -translate-y-1/2 text-[11px] sm:text-xs" style="color: var(--text-secondary);"></i>
+          <input type="text" id="searchInput" oninput="applyAlbumsFilterAndSort()" placeholder="Tìm kiếm..." 
+            class="w-full rounded-full pl-7 sm:pl-9 pr-3 py-1.5 text-xs sm:text-sm focus:outline-none border transition"
             style="background: rgba(0,0,0,0.25); border-color: var(--border-color); color: var(--text-primary);">
         </div>
 
         <button id="openSettingsBtn" onclick="requestSettingsAccess()" title="Cài đặt hệ thống & giao diện"
-          class="hidden w-10 h-10 rounded-full glass flex items-center justify-center hover:opacity-80 transition shrink-0 self-end sm:self-auto">
-          <i class="fa-solid fa-gear accent-text"></i>
+          class="hidden w-8 h-8 sm:w-9 sm:h-9 rounded-full glass flex items-center justify-center hover:opacity-80 transition shrink-0">
+          <i class="fa-solid fa-gear accent-text text-xs sm:text-sm"></i>
         </button>
       </div>
     </div>
   </header>
 
   <!-- Main Content -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-8">
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 sm:py-8">
     <div id="loader" class="flex flex-col items-center justify-center py-24">
       <div class="w-12 h-12 border-4 border-slate-700 rounded-full animate-spin mb-4" style="border-top-color: var(--accent-color);"></div>
       <p id="loaderText" class="text-sm" style="color: var(--text-secondary);">Đang tải danh sách album từ hệ thống...</p>
     </div>
 
-    <!-- View 1: Danh sách Album -->
+    <!-- View 1: Danh sách Album (ngoài album) -->
     <section id="albumsView" class="hidden">
-      <div class="flex flex-wrap items-center justify-between gap-2 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
         <div>
           <h2 class="text-xl font-semibold">Album ảnh gần đây (<span id="albumCount">0</span>)</h2>
           <p id="activeParentLabel" class="text-xs mt-0.5" style="color: var(--text-secondary);">Đang xem: Thư mục mẹ mặc định</p>
         </div>
-        <button onclick="loadAlbums(true)" title="Làm mới dữ liệu từ Drive" class="text-xs flex items-center gap-1.5 hover:opacity-80 transition" style="color: var(--text-secondary);">
-          <i class="fa-solid fa-rotate-right"></i> Cập nhật mới
-        </button>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+          <!-- Sắp xếp danh sách album ngoài: Mới nhất / Cũ nhất / Tên A -> Z / Tên Z -> A -->
+          <div class="relative">
+            <i class="fa-solid fa-arrow-down-a-z absolute left-3.5 top-1/2 -translate-y-1/2 text-xs accent-text pointer-events-none"></i>
+            <select id="albumSortSelect" onchange="applyAlbumsFilterAndSort()" title="Sắp xếp danh sách album"
+              class="rounded-full pl-9 pr-8 py-1.5 text-xs focus:outline-none border transition appearance-none cursor-pointer"
+              style="background: rgba(0,0,0,0.28); border-color: var(--border-color); color: var(--text-primary);">
+              <option value="newest" style="background:#0f172a;color:#f8fafc;">Mới nhất</option>
+              <option value="oldest" style="background:#0f172a;color:#f8fafc;">Cũ nhất</option>
+              <option value="az" style="background:#0f172a;color:#f8fafc;">Tên A → Z</option>
+              <option value="za" style="background:#0f172a;color:#f8fafc;">Tên Z → A</option>
+            </select>
+            <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] pointer-events-none" style="color: var(--text-secondary);"></i>
+          </div>
+
+          <button onclick="loadAlbums(true)" title="Làm mới dữ liệu từ Drive" class="text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-full glass hover:opacity-80 transition" style="color: var(--text-secondary);">
+            <i class="fa-solid fa-rotate-right"></i> Cập nhật mới
+          </button>
+        </div>
       </div>
       
       <div id="albumsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
@@ -144,20 +162,127 @@
         </div>
       </div>
 
+      <!-- Thư mục con + Lọc & Sắp xếp A -> Z / Z -> A -->
       <div id="subFoldersSection" class="hidden mb-8">
-        <h3 class="text-sm font-semibold uppercase tracking-wider mb-3" style="color: var(--text-secondary);">Thư mục con</h3>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+          <h3 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-secondary);">
+            Thư mục con (<span id="subFolderCount">0</span>)
+          </h3>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs" style="color: var(--text-secondary);"></i>
+              <input type="text" id="subFolderFilterInput" oninput="applySubFolderFilterAndSort()" placeholder="Lọc thư mục con..."
+                class="rounded-full pl-8 pr-3.5 py-1.5 text-xs focus:outline-none border transition w-44 sm:w-52"
+                style="background: rgba(0,0,0,0.25); border-color: var(--border-color); color: var(--text-primary);">
+            </div>
+
+            <div class="relative">
+              <i class="fa-solid fa-arrow-down-a-z absolute left-3 top-1/2 -translate-y-1/2 text-xs accent-text pointer-events-none"></i>
+              <select id="subFolderSortSelect" onchange="applySubFolderFilterAndSort()" title="Sắp xếp thư mục con"
+                class="rounded-full pl-8 pr-7 py-1.5 text-xs focus:outline-none border transition appearance-none cursor-pointer"
+                style="background: rgba(0,0,0,0.28); border-color: var(--border-color); color: var(--text-primary);">
+                <option value="az" style="background:#0f172a;color:#f8fafc;">A → Z</option>
+                <option value="za" style="background:#0f172a;color:#f8fafc;">Z → A</option>
+              </select>
+              <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] pointer-events-none" style="color: var(--text-secondary);"></i>
+            </div>
+          </div>
+        </div>
+
         <div id="subFoldersGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+        <p id="subFolderEmptyMsg" class="hidden text-xs py-3" style="color: var(--text-secondary);">Không có thư mục con khớp từ khóa lọc.</p>
+      </div>
+
+      <!-- Bộ lọc loại (Tất cả / Ảnh / Video) + Sắp xếp A -> Z / Z -> A bên trong album -->
+      <div id="mediaFilterBar" class="hidden flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" id="filterTypeAll" onclick="setMediaTypeFilter('all')"
+            class="px-3.5 py-1.5 rounded-full text-xs font-semibold accent-bg transition">
+            Tất cả (<span id="countAllMedia">0</span>)
+          </button>
+          <button type="button" id="filterTypeImage" onclick="setMediaTypeFilter('image')"
+            class="px-3.5 py-1.5 rounded-full text-xs font-medium glass hover:opacity-80 transition">
+            Ảnh (<span id="countImageMedia">0</span>)
+          </button>
+          <button type="button" id="filterTypeVideo" onclick="setMediaTypeFilter('video')"
+            class="px-3.5 py-1.5 rounded-full text-xs font-medium glass hover:opacity-80 transition">
+            Video (<span id="countVideoMedia">0</span>)
+          </button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs" style="color: var(--text-secondary);"></i>
+            <input type="text" id="mediaSearchInput" oninput="applyMediaFilterAndSort()" placeholder="Tìm tên file..."
+              class="rounded-full pl-8 pr-3.5 py-1.5 text-xs focus:outline-none border transition w-44 sm:w-52"
+              style="background: rgba(0,0,0,0.25); border-color: var(--border-color); color: var(--text-primary);">
+          </div>
+
+          <div class="relative">
+            <i class="fa-solid fa-arrow-down-a-z absolute left-3 top-1/2 -translate-y-1/2 text-xs accent-text pointer-events-none"></i>
+            <select id="mediaSortSelect" onchange="applyMediaFilterAndSort()" title="Sắp xếp tệp"
+              class="rounded-full pl-8 pr-7 py-1.5 text-xs focus:outline-none border transition appearance-none cursor-pointer"
+              style="background: rgba(0,0,0,0.28); border-color: var(--border-color); color: var(--text-primary);">
+              <option value="az" style="background:#0f172a;color:#f8fafc;">A → Z</option>
+              <option value="za" style="background:#0f172a;color:#f8fafc;">Z → A</option>
+            </select>
+            <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] pointer-events-none" style="color: var(--text-secondary);"></i>
+          </div>
+        </div>
       </div>
 
       <div id="photosGrid" class="photo-grid"></div>
+      <p id="mediaEmptyMsg" class="hidden text-center text-xs py-8" style="color: var(--text-secondary);">Không có tệp nào khớp bộ lọc hiện tại.</p>
     </section>
   </main>
 
-  <!-- Nút Logo Facebook cố định góc dưới bên phải -->
-  <a id="floatingFbBtn" href="#" target="_blank" rel="noopener" title="Fanpage Facebook"
-    class="hidden fixed bottom-5 right-5 z-40 w-12 h-12 rounded-full bg-[#1877F2] hover:bg-[#1565D8] text-white shadow-xl shadow-black/40 flex items-center justify-center text-2xl transition hover:scale-105">
-    <i class="fa-brands fa-facebook-f"></i>
-  </a>
+  <!-- Cụm nút cố định góc dưới bên phải: Hòm thư góp ý nằm ngay trên biểu tượng Facebook -->
+  <div class="fixed bottom-5 right-5 z-40 flex flex-col items-center gap-3">
+    <button type="button" onclick="openFeedbackModal()" title="Hòm thư góp ý"
+      class="w-12 h-12 rounded-full accent-bg shadow-xl shadow-black/40 flex items-center justify-center text-xl transition hover:scale-105">
+      <i class="fa-solid fa-envelope-open-text"></i>
+    </button>
+
+    <a id="floatingFbBtn" href="#" target="_blank" rel="noopener" title="Fanpage Facebook"
+      class="hidden w-12 h-12 rounded-full bg-[#1877F2] hover:bg-[#1565D8] text-white shadow-xl shadow-black/40 flex items-center justify-center text-2xl transition hover:scale-105">
+      <i class="fa-brands fa-facebook-f"></i>
+    </a>
+  </div>
+
+  <!-- Modal Gửi Góp Ý (Khách hàng gửi vào hòm thư) -->
+  <div id="feedbackModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 text-slate-100 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold text-base flex items-center gap-2">
+          <i class="fa-solid fa-envelope-open-text text-amber-400"></i> Hòm thư góp ý
+        </h3>
+        <button onclick="closeFeedbackModal()" class="w-8 h-8 rounded-full hover:bg-slate-800 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <p class="text-xs text-slate-400 mb-3">Gửi phản hồi về chất lượng ảnh, yêu cầu bổ sung hoặc góp ý cho đội ngũ CYD Media.</p>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs text-slate-300 mb-1">Tên hoặc lớp / đơn vị (không bắt buộc)</label>
+          <input type="text" id="fbSenderInput" maxlength="80" placeholder="VD: Nguyễn Văn A - Lớp ĐD18"
+            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="block text-xs text-slate-300 mb-1">Nội dung góp ý</label>
+          <textarea id="fbContentInput" rows="4" maxlength="1000" placeholder="Nhập nội dung góp ý của bạn..."
+            class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"></textarea>
+        </div>
+      </div>
+      <p id="fbSubmitStatus" class="text-xs min-h-[18px] mt-2"></p>
+      <div class="flex justify-end gap-2 mt-3">
+        <button onclick="closeFeedbackModal()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium">Đóng</button>
+        <button id="fbSubmitBtn" onclick="submitFeedback()" class="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5">
+          <i class="fa-solid fa-paper-plane"></i> Gửi góp ý
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Lightbox Xem Ảnh / Phát Video Phóng To -->
   <div id="lightbox" class="fixed inset-0 z-50 bg-black/95 hidden flex flex-col justify-between select-none">
@@ -201,7 +326,7 @@
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
-      <p class="text-xs text-slate-400 mb-3">Nhập passcode để mở bảng cài đặt hệ thống & giao diện.</p>
+      <p class="text-xs text-slate-400 mb-3">Nhập passcode để mở bảng cài đặt & xem hòm thư góp ý.</p>
       <input type="password" id="passcodeInput" inputmode="numeric" maxlength="20" placeholder="Nhập passcode..."
         onkeydown="if(event.key==='Enter') verifyPasscode()"
         class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500 mb-2">
@@ -219,7 +344,7 @@
       <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800">
         <div class="flex items-center gap-2.5">
           <i class="fa-solid fa-sliders text-amber-400"></i>
-          <h3 class="font-bold text-lg">Cài đặt nguồn dữ liệu & giao diện</h3>
+          <h3 class="font-bold text-lg">Cài đặt hệ thống, giao diện & góp ý</h3>
         </div>
         <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-full hover:bg-slate-800 flex items-center justify-center">
           <i class="fa-solid fa-xmark"></i>
@@ -227,6 +352,7 @@
       </div>
 
       <div class="p-6 overflow-y-auto space-y-6 text-sm">
+        <!-- Mục 0: Thư mục mẹ mặc định + Danh sách thư mục mẹ -->
         <div class="p-4 rounded-xl bg-slate-800/70 border border-slate-700/80">
           <h4 class="font-semibold text-amber-400 uppercase text-xs tracking-wider mb-3">0. Thư mục mẹ mặc định & Danh sách thư mục mẹ</h4>
           <div class="space-y-3">
@@ -258,6 +384,7 @@
           </div>
         </div>
 
+        <!-- Mục 1: Thông tin thương hiệu & Fanpage -->
         <div>
           <h4 class="font-semibold text-amber-400 uppercase text-xs tracking-wider mb-3">1. Thông tin thương hiệu & Fanpage</h4>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -288,6 +415,7 @@
           </div>
         </div>
 
+        <!-- Mục 2: Hệ thống màu nền & điểm nhấn -->
         <div class="pt-4 border-t border-slate-800">
           <h4 class="font-semibold text-amber-400 uppercase text-xs tracking-wider mb-3">2. Hệ thống màu nền & điểm nhấn</h4>
           <div class="flex flex-wrap gap-2 mb-4">
@@ -328,6 +456,7 @@
           </div>
         </div>
 
+        <!-- Mục 3: Ảnh nền trang web -->
         <div class="pt-4 border-t border-slate-800">
           <h4 class="font-semibold text-amber-400 uppercase text-xs tracking-wider mb-3">3. Ảnh nền trang web (Tùy chọn)</h4>
           <div class="space-y-3">
@@ -342,6 +471,37 @@
               </div>
               <input type="range" id="cfgBgOpacity" min="30" max="98" value="85" oninput="previewFromInputs()" class="w-full accent-amber-500">
             </div>
+          </div>
+        </div>
+
+        <!-- Mục 4: Đổi passcode cài đặt -->
+        <div class="pt-4 border-t border-slate-800">
+          <h4 class="font-semibold text-amber-400 uppercase text-xs tracking-wider mb-3">4. Bảo mật & Đổi passcode</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-slate-400 text-xs mb-1">Passcode mới (để trống nếu giữ nguyên)</label>
+              <input type="password" id="cfgNewPasscode" inputmode="numeric" maxlength="20" placeholder="Nhập passcode mới..."
+                class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+            </div>
+            <div>
+              <label class="block text-slate-400 text-xs mb-1">Xác nhận passcode mới</label>
+              <input type="password" id="cfgConfirmPasscode" inputmode="numeric" maxlength="20" placeholder="Nhập lại passcode mới..."
+                class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+            </div>
+          </div>
+          <p id="passcodeChangeNote" class="text-[11px] text-slate-400 mt-1.5">Passcode hiện tại đang được đồng bộ trên Google Drive sau khi bấm Lưu & Tải lại.</p>
+        </div>
+
+        <!-- Mục 5: Hòm thư góp ý (chỉ xem được bên trong cài đặt) -->
+        <div class="pt-4 border-t border-slate-800">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="font-semibold text-amber-400 uppercase text-xs tracking-wider">5. Hòm thư góp ý từ khách (<span id="feedbackCountBadge">0</span>)</h4>
+            <button type="button" onclick="loadFeedbacksInSettings()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-rotate-right"></i> Tải lại thư
+            </button>
+          </div>
+          <div id="feedbackAdminList" class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+            <p class="text-xs text-slate-400">Đang tải danh sách góp ý...</p>
           </div>
         </div>
       </div>
@@ -371,15 +531,16 @@
   <script>
     const DEFAULT_ROOT_FOLDER_ID = '1rIhAypKT3iIW9Tg1N2prgcDGq4PG9aDb';
     const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbykHI_nxo-dZO6-Un7Gw4NFhsLLg4xpy0F25v6xdm32bH2AQo5bSKceLPFR7wpnxjwW9w/exec';
-    const SETTINGS_PASSCODE = '2249';
+    const DEFAULT_PASSCODE = '2249';
 
     const DEFAULT_CONFIG = {
       apiUrl: DEFAULT_API_URL,
+      passcode: DEFAULT_PASSCODE,
       defaultFolderName: 'Thư mục mẹ mặc định',
       defaultFolder: DEFAULT_ROOT_FOLDER_ID,
       parentFolders: [],
       title: 'CYD MEDIA',
-      subtitle: 'Hệ thống trả ảnh chất lượng cao',
+      subtitle: 'Kho phương tiện',
       logo: '',
       fbPage: '',
       contactUrl: '',
@@ -403,7 +564,10 @@
     let settingsUnlocked = false;
     let allAlbums = [];
     let folderStack = [];
+    let allSubFolders = [];
+    let allMediaInFolder = [];
     let currentPhotos = [];
+    let currentMediaType = 'all';
     let currentPhotoIndex = 0;
 
     const getThumbUrl = (id, width = 800) => `https://lh3.googleusercontent.com/d/${id}=w${width}`;
@@ -423,6 +587,11 @@
       if (selected && selected.apiUrl && selected.apiUrl.trim()) {
         return selected.apiUrl.trim();
       }
+      const url = (currentConfig.apiUrl || DEFAULT_API_URL).trim();
+      return url || DEFAULT_API_URL;
+    }
+
+    function getBaseApiUrl() {
       const url = (currentConfig.apiUrl || DEFAULT_API_URL).trim();
       return url || DEFAULT_API_URL;
     }
@@ -474,7 +643,7 @@
       defaultOpt.value = '__default__';
       defaultOpt.style.background = '#0f172a';
       defaultOpt.style.color = '#f8fafc';
-      defaultOpt.textContent = `★ ${defaultName}`;
+      defaultOpt.textContent = defaultName;
       select.appendChild(defaultOpt);
 
       list.forEach((item, idx) => {
@@ -482,7 +651,7 @@
         opt.value = String(idx);
         opt.style.background = '#0f172a';
         opt.style.color = '#f8fafc';
-        opt.textContent = (item && item.name && item.name.trim()) ? item.name.trim() : `Thư mục mẹ ${idx + 1}`;
+        opt.textContent = (item && item.name && item.name.trim()) ? item.name.trim() : `Thư mục ${idx + 1}`;
         select.appendChild(opt);
       });
 
@@ -586,7 +755,7 @@
     }
 
     function syncTabIconAndTitle(logoUrl) {
-      document.title = 'CYD MEDIA - Kho Phương Tiện';
+      document.title = 'CYD Media - Kho Phương Tiện';
       const faviconEl = document.getElementById('browserFavicon');
       if (!faviconEl) return;
 
@@ -605,6 +774,7 @@
         parentFolders: Array.isArray(cfg && cfg.parentFolders) ? cfg.parentFolders : []
       };
       if (!currentConfig.apiUrl) currentConfig.apiUrl = DEFAULT_API_URL;
+      if (!currentConfig.passcode) currentConfig.passcode = DEFAULT_PASSCODE;
       if (!currentConfig.defaultFolder) currentConfig.defaultFolder = DEFAULT_ROOT_FOLDER_ID;
       if (!currentConfig.defaultFolderName) currentConfig.defaultFolderName = 'Thư mục mẹ mặc định';
 
@@ -682,7 +852,8 @@
 
     function verifyPasscode() {
       const entered = document.getElementById('passcodeInput').value.trim();
-      if (entered === SETTINGS_PASSCODE) {
+      const activePasscode = (currentConfig.passcode || DEFAULT_PASSCODE).trim();
+      if (entered === activePasscode) {
         settingsUnlocked = true;
         closePasscodeModal();
         openSettingsModal();
@@ -725,9 +896,12 @@
       document.getElementById('cfgBgImage').value = currentConfig.bgImage;
       document.getElementById('cfgBgOpacity').value = currentConfig.bgOpacity;
       document.getElementById('overlayVal').textContent = currentConfig.bgOpacity + '%';
+      document.getElementById('cfgNewPasscode').value = '';
+      document.getElementById('cfgConfirmPasscode').value = '';
       document.getElementById('saveStatus').textContent = '';
       document.getElementById('saveStatus').className = 'text-xs text-slate-400';
       document.getElementById('settingsModal').classList.remove('hidden');
+      loadFeedbacksInSettings();
     }
 
     function closeSettingsModal() {
@@ -744,10 +918,11 @@
       previewFromInputs();
     }
 
-    function collectConfigFromForm() {
+    function collectConfigFromForm(overridePasscode = null) {
       const opacity = document.getElementById('cfgBgOpacity').value;
       return {
         apiUrl: (document.getElementById('cfgApiUrl').value || DEFAULT_API_URL).trim(),
+        passcode: overridePasscode || currentConfig.passcode || DEFAULT_PASSCODE,
         defaultFolderName: (document.getElementById('cfgDefaultFolderName').value || '').trim() || 'Thư mục mẹ mặc định',
         defaultFolder: (document.getElementById('cfgDefaultFolder').value || DEFAULT_ROOT_FOLDER_ID).trim(),
         parentFolders: readParentFoldersFromEditor(),
@@ -773,14 +948,31 @@
     }
 
     async function saveConfigAndReload() {
-      const cfg = collectConfigFromForm();
+      const newPass = (document.getElementById('cfgNewPasscode').value || '').trim();
+      const confirmPass = (document.getElementById('cfgConfirmPasscode').value || '').trim();
+      const status = document.getElementById('saveStatus');
+
+      if (newPass || confirmPass) {
+        if (newPass.length < 4) {
+          status.textContent = 'Passcode mới cần tối thiểu 4 ký tự.';
+          status.className = 'text-xs text-red-400';
+          return;
+        }
+        if (newPass !== confirmPass) {
+          status.textContent = 'Xác nhận passcode mới chưa khớp.';
+          status.className = 'text-xs text-red-400';
+          return;
+        }
+      }
+
+      const nextPasscode = newPass || currentConfig.passcode || DEFAULT_PASSCODE;
+      const cfg = collectConfigFromForm(nextPasscode);
       applyConfig(cfg);
       localStorage.setItem('cyd_web_config_cache', JSON.stringify(cfg));
 
       const btn = document.getElementById('saveCfgBtn');
-      const status = document.getElementById('saveStatus');
       btn.disabled = true;
-      status.textContent = 'Đã lưu trên trình duyệt, đang đồng bộ & tải lại album...';
+      status.textContent = 'Đang lưu & đồng bộ cấu hình lên Drive...';
       status.className = 'text-xs text-amber-400';
 
       try {
@@ -788,11 +980,11 @@
         const res = await fetch(`${(cfg.apiUrl || DEFAULT_API_URL).trim()}?action=saveConfig&config=${encoded}`);
         const json = await res.json();
         if (json.status === 'success') {
-          status.textContent = 'Đã lưu cả trên trình duyệt và Drive!';
+          status.textContent = newPass ? 'Đã đổi passcode & đồng bộ Drive!' : 'Đã lưu & đồng bộ Drive!';
           status.className = 'text-xs text-emerald-400';
         }
       } catch (e) {
-        status.textContent = 'Đã áp dụng cho trình duyệt này (bỏ qua lỗi đồng bộ server).';
+        status.textContent = 'Đã lưu trên trình duyệt này.';
         status.className = 'text-xs text-slate-300';
       }
 
@@ -801,7 +993,121 @@
       btn.disabled = false;
     }
 
-    function loadSavedLocalConfig() {
+    // Hòm thư góp ý: gửi từ khách hàng
+    function openFeedbackModal() {
+      document.getElementById('fbSenderInput').value = '';
+      document.getElementById('fbContentInput').value = '';
+      document.getElementById('fbSubmitStatus').textContent = '';
+      document.getElementById('feedbackModal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('fbContentInput').focus(), 50);
+    }
+
+    function closeFeedbackModal() {
+      document.getElementById('feedbackModal').classList.add('hidden');
+    }
+
+    async function submitFeedback() {
+      const sender = (document.getElementById('fbSenderInput').value || '').trim();
+      const content = (document.getElementById('fbContentInput').value || '').trim();
+      const statusEl = document.getElementById('fbSubmitStatus');
+      const btn = document.getElementById('fbSubmitBtn');
+
+      if (!content) {
+        statusEl.textContent = 'Vui lòng nhập nội dung góp ý.';
+        statusEl.className = 'text-xs text-red-400 min-h-[18px] mt-2';
+        return;
+      }
+
+      btn.disabled = true;
+      statusEl.textContent = 'Đang gửi góp ý...';
+      statusEl.className = 'text-xs text-amber-400 min-h-[18px] mt-2';
+
+      try {
+        const encoded = encodeURIComponent(JSON.stringify({ sender, content }));
+        const res = await fetch(`${getBaseApiUrl()}?action=submitFeedback&data=${encoded}`);
+        const json = await res.json();
+        if (json.status === 'success') {
+          statusEl.textContent = 'Cảm ơn bạn! Góp ý đã được gửi thành công.';
+          statusEl.className = 'text-xs text-emerald-400 min-h-[18px] mt-2';
+          setTimeout(() => closeFeedbackModal(), 900);
+        } else {
+          statusEl.textContent = json.message || 'Không gửi được góp ý.';
+          statusEl.className = 'text-xs text-red-400 min-h-[18px] mt-2';
+        }
+      } catch (e) {
+        statusEl.textContent = 'Lỗi kết nối khi gửi góp ý, vui lòng thử lại.';
+        statusEl.className = 'text-xs text-red-400 min-h-[18px] mt-2';
+      }
+      btn.disabled = false;
+    }
+
+    // Hòm thư góp ý: chỉ tải và xem được bên trong phần cài đặt
+    async function loadFeedbacksInSettings() {
+      const listEl = document.getElementById('feedbackAdminList');
+      const badgeEl = document.getElementById('feedbackCountBadge');
+      listEl.innerHTML = `<p class="text-xs text-slate-400">Đang tải danh sách góp ý...</p>`;
+
+      try {
+        const res = await fetch(`${getBaseApiUrl()}?action=getFeedbacks`);
+        const json = await res.json();
+        if (json.status === 'success') {
+          renderFeedbacksInSettings(json.data || []);
+        } else {
+          badgeEl.textContent = '0';
+          listEl.innerHTML = `<p class="text-xs text-red-400">Không tải được hòm thư góp ý.</p>`;
+        }
+      } catch (e) {
+        badgeEl.textContent = '0';
+        listEl.innerHTML = `<p class="text-xs text-slate-400">Chưa kết nối được máy chủ để tải góp ý.</p>`;
+      }
+    }
+
+    function renderFeedbacksInSettings(items) {
+      const listEl = document.getElementById('feedbackAdminList');
+      const badgeEl = document.getElementById('feedbackCountBadge');
+      badgeEl.textContent = items.length;
+      listEl.innerHTML = '';
+
+      if (!items || items.length === 0) {
+        listEl.innerHTML = `<p class="text-xs text-slate-400">Chưa có lời nhắn góp ý nào.</p>`;
+        return;
+      }
+
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'p-3 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-start justify-between gap-3';
+        const safeSender = (item.sender || 'Khách ẩn danh').replace(/</g, '&lt;');
+        const safeContent = (item.content || '').replace(/</g, '&lt;').replace(/\n/g, '<br>');
+        const safeTime = (item.createdAt || '').replace(/</g, '&lt;');
+
+        card.innerHTML = `
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2 mb-1">
+              <span class="font-semibold text-xs text-amber-300">${safeSender}</span>
+              <span class="text-[11px] text-slate-400">${safeTime}</span>
+            </div>
+            <p class="text-xs text-slate-200 break-words">${safeContent}</p>
+          </div>
+          <button type="button" onclick="deleteFeedbackItem('${item.id}')" title="Xóa thư này"
+            class="px-2 py-1 rounded bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40 text-xs shrink-0">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        `;
+        listEl.appendChild(card);
+      });
+    }
+
+    async function deleteFeedbackItem(id) {
+      try {
+        const res = await fetch(`${getBaseApiUrl()}?action=deleteFeedback&id=${encodeURIComponent(id)}`);
+        const json = await res.json();
+        if (json.status === 'success') {
+          renderFeedbacksInSettings(json.data || []);
+        }
+      } catch (e) {}
+    }
+
+    async function loadSyncedConfig() {
       const cached = localStorage.getItem('cyd_web_config_cache');
       if (cached) {
         try {
@@ -812,19 +1118,28 @@
       } else {
         renderParentFolderFilterDropdown();
       }
+
+      try {
+        const res = await fetch(`${getBaseApiUrl()}?action=getConfig`);
+        const json = await res.json();
+        if (json.status === 'success' && json.data) {
+          applyConfig(json.data);
+          localStorage.setItem('cyd_web_config_cache', JSON.stringify(json.data));
+        }
+      } catch (e) {}
     }
 
     function removeAccents(str) {
       return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('admin') === '1') {
         document.getElementById('openSettingsBtn').classList.remove('hidden');
       }
 
-      loadSavedLocalConfig();
+      await loadSyncedConfig();
 
       const albumId = urlParams.get('album');
       if (albumId) {
@@ -851,7 +1166,7 @@
 
         if (json.status === 'success') {
           allAlbums = json.data || [];
-          renderAlbums(allAlbums);
+          applyAlbumsFilterAndSort();
           hideLoader();
           document.getElementById('albumsView').classList.remove('hidden');
         } else {
@@ -862,6 +1177,27 @@
         hideLoader();
         alert('Không thể kết nối đến link Apps Script. Anh bấm 5 lần vào logo để kiểm tra lại link nhé!');
       }
+    }
+
+    function applyAlbumsFilterAndSort() {
+      const keyword = removeAccents((document.getElementById('searchInput').value || '').trim());
+      const sortMode = document.getElementById('albumSortSelect').value || 'newest';
+
+      const filtered = allAlbums.filter(a => removeAccents(a.name || '').includes(keyword));
+      filtered.sort((a, b) => {
+        if (sortMode === 'oldest') {
+          return (a.date || 0) - (b.date || 0);
+        }
+        if (sortMode === 'az') {
+          return (a.name || '').localeCompare(b.name || '', 'vi', { numeric: true, sensitivity: 'base' });
+        }
+        if (sortMode === 'za') {
+          return (b.name || '').localeCompare(a.name || '', 'vi', { numeric: true, sensitivity: 'base' });
+        }
+        return (b.date || 0) - (a.date || 0);
+      });
+
+      renderAlbums(filtered);
     }
 
     function renderAlbums(albums) {
@@ -904,12 +1240,6 @@
       });
     }
 
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-      const keyword = removeAccents(e.target.value.trim());
-      const filtered = allAlbums.filter(a => removeAccents(a.name).includes(keyword));
-      renderAlbums(filtered);
-    });
-
     async function openAlbum(folderId, pushToStack = true) {
       if (pushToStack) {
         const currentTop = folderStack[folderStack.length - 1];
@@ -939,16 +1269,25 @@
           if (folderStack.length > 0) {
             folderStack[folderStack.length - 1].name = json.albumName;
           }
-          const subFolders = json.folders || [];
-          currentPhotos = json.data || [];
+          allSubFolders = Array.isArray(json.folders) ? json.folders : [];
+          allMediaInFolder = Array.isArray(json.data) ? json.data : [];
 
           document.getElementById('currentAlbumTitle').textContent = json.albumName;
           document.getElementById('currentAlbumMeta').textContent =
-            `${subFolders.length} thư mục con · ${currentPhotos.length} ảnh & video`;
+            `${allSubFolders.length} thư mục con · ${allMediaInFolder.length} ảnh & video`;
           document.getElementById('openDriveBtn').href = json.driveUrl;
 
-          renderSubFolders(subFolders);
-          renderPhotos(currentPhotos);
+          document.getElementById('subFolderFilterInput').value = '';
+          document.getElementById('subFolderSortSelect').value = 'az';
+          document.getElementById('mediaSearchInput').value = '';
+          document.getElementById('mediaSortSelect').value = 'az';
+          currentMediaType = 'all';
+
+          applySubFolderFilterAndSort();
+          updateMediaTypeCounts();
+          updateMediaFilterButtonsUI();
+          applyMediaFilterAndSort();
+
           hideLoader();
           document.getElementById('photosView').classList.remove('hidden');
           window.scrollTo(0, 0);
@@ -963,17 +1302,41 @@
       }
     }
 
-    function renderSubFolders(folders) {
+    function applySubFolderFilterAndSort() {
+      const keyword = removeAccents((document.getElementById('subFolderFilterInput').value || '').trim());
+      const sortMode = document.getElementById('subFolderSortSelect').value || 'az';
+
+      const filtered = allSubFolders.filter(f => removeAccents(f.name || '').includes(keyword));
+      filtered.sort((a, b) => {
+        const cmp = (a.name || '').localeCompare(b.name || '', 'vi', { numeric: true, sensitivity: 'base' });
+        return sortMode === 'za' ? -cmp : cmp;
+      });
+
+      renderSubFolders(filtered, allSubFolders.length > 0);
+    }
+
+    function renderSubFolders(folders, hasSubFoldersInAlbum = true) {
       const section = document.getElementById('subFoldersSection');
       const grid = document.getElementById('subFoldersGrid');
-      grid.innerHTML = '';
+      const emptyMsg = document.getElementById('subFolderEmptyMsg');
+      const countEl = document.getElementById('subFolderCount');
 
-      if (!folders || folders.length === 0) {
+      grid.innerHTML = '';
+      countEl.textContent = allSubFolders.length;
+
+      if (!hasSubFoldersInAlbum) {
         section.classList.add('hidden');
         return;
       }
 
       section.classList.remove('hidden');
+
+      if (!folders || folders.length === 0) {
+        emptyMsg.classList.remove('hidden');
+        return;
+      }
+
+      emptyMsg.classList.add('hidden');
       folders.forEach(sub => {
         const card = document.createElement('div');
         card.className = 'glass rounded-xl p-3.5 cursor-pointer accent-border transition flex items-center justify-between gap-3';
@@ -995,9 +1358,76 @@
       });
     }
 
+    function updateMediaTypeCounts() {
+      const imgCount = allMediaInFolder.filter(m => m.type !== 'video').length;
+      const vidCount = allMediaInFolder.filter(m => m.type === 'video').length;
+      document.getElementById('countAllMedia').textContent = allMediaInFolder.length;
+      document.getElementById('countImageMedia').textContent = imgCount;
+      document.getElementById('countVideoMedia').textContent = vidCount;
+    }
+
+    function updateMediaFilterButtonsUI() {
+      const bar = document.getElementById('mediaFilterBar');
+      if (!allMediaInFolder || allMediaInFolder.length === 0) {
+        bar.classList.add('hidden');
+        return;
+      }
+      bar.classList.remove('hidden');
+
+      const allBtn = document.getElementById('filterTypeAll');
+      const imgBtn = document.getElementById('filterTypeImage');
+      const vidBtn = document.getElementById('filterTypeVideo');
+
+      [allBtn, imgBtn, vidBtn].forEach(b => {
+        b.className = 'px-3.5 py-1.5 rounded-full text-xs font-medium glass hover:opacity-80 transition';
+      });
+
+      if (currentMediaType === 'image') {
+        imgBtn.className = 'px-3.5 py-1.5 rounded-full text-xs font-semibold accent-bg transition';
+      } else if (currentMediaType === 'video') {
+        vidBtn.className = 'px-3.5 py-1.5 rounded-full text-xs font-semibold accent-bg transition';
+      } else {
+        allBtn.className = 'px-3.5 py-1.5 rounded-full text-xs font-semibold accent-bg transition';
+      }
+    }
+
+    function setMediaTypeFilter(type) {
+      currentMediaType = type;
+      updateMediaFilterButtonsUI();
+      applyMediaFilterAndSort();
+    }
+
+    function applyMediaFilterAndSort() {
+      const keyword = removeAccents((document.getElementById('mediaSearchInput').value || '').trim());
+      const sortMode = document.getElementById('mediaSortSelect').value || 'az';
+
+      const filtered = allMediaInFolder.filter(item => {
+        const matchType = currentMediaType === 'all'
+          ? true
+          : (currentMediaType === 'video' ? item.type === 'video' : item.type !== 'video');
+        const matchName = removeAccents(item.name || '').includes(keyword);
+        return matchType && matchName;
+      });
+
+      filtered.sort((a, b) => {
+        const cmp = (a.name || '').localeCompare(b.name || '', 'vi', { numeric: true, sensitivity: 'base' });
+        return sortMode === 'za' ? -cmp : cmp;
+      });
+
+      currentPhotos = filtered;
+      renderPhotos(currentPhotos);
+    }
+
     function renderPhotos(photos) {
       const grid = document.getElementById('photosGrid');
+      const emptyMsg = document.getElementById('mediaEmptyMsg');
       grid.innerHTML = '';
+
+      if (allMediaInFolder.length > 0 && (!photos || photos.length === 0)) {
+        emptyMsg.classList.remove('hidden');
+        return;
+      }
+      emptyMsg.classList.add('hidden');
 
       photos.forEach((photo, index) => {
         const item = document.createElement('div');
