@@ -965,20 +965,25 @@
       status.className = 'text-xs text-amber-400';
 
       try {
-        const encoded = encodeURIComponent(JSON.stringify(cfg));
-        const res = await fetch(`${(cfg.apiUrl || DEFAULT_API_URL).trim()}?action=saveConfig&config=${encoded}`);
+        const res = await fetch((cfg.apiUrl || DEFAULT_API_URL).trim(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'saveConfig', config: cfg })
+        });
         const json = await res.json();
         if (json.status === 'success') {
           status.textContent = newPass ? 'Đã đổi passcode & đồng bộ Drive!' : 'Đã lưu & đồng bộ Drive!';
           status.className = 'text-xs text-emerald-400';
+          closeSettingsModal();
+          await loadAlbums(true);
+        } else {
+          status.textContent = 'Lỗi lưu trên Drive: ' + (json.message || 'Không rõ nguyên nhân');
+          status.className = 'text-xs text-red-400';
         }
       } catch (e) {
-        status.textContent = 'Đã lưu trên trình duyệt này.';
-        status.className = 'text-xs text-slate-300';
+        status.textContent = 'Lỗi kết nối khi lưu lên Drive: ' + e.message;
+        status.className = 'text-xs text-red-400';
       }
-
-      closeSettingsModal();
-      await loadAlbums(true);
       btn.disabled = false;
     }
 
@@ -1011,8 +1016,11 @@
       statusEl.className = 'text-xs text-amber-400 min-h-[18px] mt-2';
 
       try {
-        const encoded = encodeURIComponent(JSON.stringify({ sender, content }));
-        const res = await fetch(`${getBaseApiUrl()}?action=submitFeedback&data=${encoded}`);
+        const res = await fetch(getBaseApiUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'submitFeedback', data: { sender, content } })
+        });
         const json = await res.json();
         if (json.status === 'success') {
           statusEl.textContent = 'Cảm ơn bạn! Góp ý đã được gửi thành công.';
