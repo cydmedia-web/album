@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CYD Media - Kho Trả Ảnh Khách Hàng</title>
+  <link id="browserFavicon" rel="icon" href="">
+  <title>kho phương tiện</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
@@ -71,7 +72,7 @@
       </div>
 
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
-        <!-- Ô lọc thư mục mẹ (luôn hiển thị thư mục mẹ mặc định đầu tiên) -->
+        <!-- Ô lọc thư mục mẹ -->
         <div id="folderFilterContainer" class="relative sm:w-64">
           <i class="fa-solid fa-folder-tree absolute left-3.5 top-1/2 -translate-y-1/2 text-xs accent-text pointer-events-none"></i>
           <select id="folderFilterSelect" onchange="onParentFolderFilterChange()" title="Chọn thư mục mẹ"
@@ -226,7 +227,6 @@
       </div>
 
       <div class="p-6 overflow-y-auto space-y-6 text-sm">
-        <!-- Mục 0: Thư mục mẹ mặc định + Danh sách nhiều thư mục mẹ -->
         <div class="p-4 rounded-xl bg-slate-800/70 border border-slate-700/80">
           <h4 class="font-semibold text-amber-400 uppercase text-xs tracking-wider mb-3">0. Thư mục mẹ mặc định & Danh sách thư mục mẹ</h4>
           <div class="space-y-3">
@@ -246,7 +246,6 @@
               </div>
             </div>
 
-            <!-- Danh sách nhiều thư mục mẹ (thêm / sửa / xóa) -->
             <div class="pt-3 border-t border-slate-700/80">
               <div class="flex items-center justify-between mb-2">
                 <label class="block text-slate-200 text-xs font-semibold">Danh sách thư mục mẹ khác (để lọc trên web)</label>
@@ -370,9 +369,6 @@
   </footer>
 
   <script>
-    // =========================================================================
-    // DÁN ID THƯ MỤC MẸ MẶC ĐỊNH VÀO DÒNG DƯỚI ĐÂY (hoặc sửa trong Cài đặt 2249)
-    // =========================================================================
     const DEFAULT_ROOT_FOLDER_ID = '1rIhAypKT3iIW9Tg1N2prgcDGq4PG9aDb';
     const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbykHI_nxo-dZO6-Un7Gw4NFhsLLg4xpy0F25v6xdm32bH2AQo5bSKceLPFR7wpnxjwW9w/exec';
     const SETTINGS_PASSCODE = '2249';
@@ -467,7 +463,6 @@
       }
     }
 
-    // Ô lọc luôn hiển thị thư mục mẹ mặc định đầu tiên, kèm các thư mục mẹ khác
     function renderParentFolderFilterDropdown() {
       const select = document.getElementById('folderFilterSelect');
       const prevVal = select.value;
@@ -506,7 +501,6 @@
       await loadAlbums(true);
     }
 
-    // Trình quản lý thêm / sửa / xóa nhiều thư mục mẹ trong cài đặt
     function renderParentFoldersEditor(foldersList) {
       const container = document.getElementById('parentFoldersEditorList');
       container.innerHTML = '';
@@ -591,6 +585,19 @@
       return `${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}`;
     }
 
+    function syncTabIconAndTitle(logoUrl) {
+      document.title = 'kho phương tiện';
+      const faviconEl = document.getElementById('browserFavicon');
+      if (!faviconEl) return;
+
+      if (logoUrl) {
+        faviconEl.href = logoUrl;
+      } else {
+        const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="${encodeURIComponent(currentConfig.accentColor)}"/><circle cx="32" cy="34" r="11" fill="${encodeURIComponent(currentConfig.bgColor)}"/></svg>`;
+        faviconEl.href = `data:image/svg+xml,${svgIcon}`;
+      }
+    }
+
     function applyConfig(cfg) {
       currentConfig = {
         ...DEFAULT_CONFIG,
@@ -624,7 +631,6 @@
         root.style.setProperty('--bg-overlay', 'transparent');
       }
 
-      document.title = `${currentConfig.title} - Kho Trả Ảnh`;
       document.getElementById('brandTitle').textContent = currentConfig.title;
       document.getElementById('brandSubtitle').textContent = currentConfig.subtitle;
       document.getElementById('footerText').textContent = currentConfig.footer;
@@ -638,6 +644,8 @@
         logoBox.innerHTML = `<i class="fa-solid fa-camera-retro"></i>`;
         logoBox.classList.add('accent-bg');
       }
+
+      syncTabIconAndTitle(logoUrl);
 
       const fbBtn = document.getElementById('floatingFbBtn');
       const fbUrl = (currentConfig.fbPage || '').trim();
