@@ -59,7 +59,7 @@
 
   <!-- Header -->
   <header class="sticky top-0 z-30 glass border-b" style="border-color: var(--border-color);">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col lg:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-3 cursor-pointer select-none" id="brandTrigger">
         <div id="brandLogoBox" class="w-11 h-11 rounded-xl accent-bg flex items-center justify-center font-bold text-xl shadow-lg overflow-hidden shrink-0">
           <i class="fa-solid fa-camera-retro"></i>
@@ -70,7 +70,18 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-3 w-full sm:w-auto">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+        <!-- Ô lọc thư mục mẹ (luôn hiển thị thư mục mẹ mặc định đầu tiên) -->
+        <div id="folderFilterContainer" class="relative sm:w-64">
+          <i class="fa-solid fa-folder-tree absolute left-3.5 top-1/2 -translate-y-1/2 text-xs accent-text pointer-events-none"></i>
+          <select id="folderFilterSelect" onchange="onParentFolderFilterChange()" title="Chọn thư mục mẹ"
+            class="w-full rounded-full pl-9 pr-8 py-2 text-sm focus:outline-none border transition appearance-none cursor-pointer"
+            style="background: rgba(0,0,0,0.28); border-color: var(--border-color); color: var(--text-primary);">
+            <option value="__default__" style="background:#0f172a;color:#f8fafc;">Thư mục mẹ mặc định</option>
+          </select>
+          <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color: var(--text-secondary);"></i>
+        </div>
+
         <div id="searchContainer" class="relative flex-1 sm:w-72">
           <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-sm" style="color: var(--text-secondary);"></i>
           <input type="text" id="searchInput" placeholder="Tìm tên của bạn hoặc sự kiện..." 
@@ -78,8 +89,8 @@
             style="background: rgba(0,0,0,0.25); border-color: var(--border-color); color: var(--text-primary);">
         </div>
 
-        <button id="openSettingsBtn" onclick="openSettingsModal()" title="Cài đặt giao diện"
-          class="hidden w-10 h-10 rounded-full glass flex items-center justify-center hover:opacity-80 transition shrink-0">
+        <button id="openSettingsBtn" onclick="requestSettingsAccess()" title="Cài đặt hệ thống & giao diện"
+          class="hidden w-10 h-10 rounded-full glass flex items-center justify-center hover:opacity-80 transition shrink-0 self-end sm:self-auto">
           <i class="fa-solid fa-gear accent-text"></i>
         </button>
       </div>
@@ -95,8 +106,11 @@
 
     <!-- View 1: Danh sách Album -->
     <section id="albumsView" class="hidden">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-semibold">Album ảnh gần đây (<span id="albumCount">0</span>)</h2>
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-6">
+        <div>
+          <h2 class="text-xl font-semibold">Album ảnh gần đây (<span id="albumCount">0</span>)</h2>
+          <p id="activeParentLabel" class="text-xs mt-0.5" style="color: var(--text-secondary);">Đang xem: Thư mục mẹ mặc định</p>
+        </div>
         <button onclick="loadAlbums(true)" title="Làm mới dữ liệu từ Drive" class="text-xs flex items-center gap-1.5 hover:opacity-80 transition" style="color: var(--text-secondary);">
           <i class="fa-solid fa-rotate-right"></i> Cập nhật mới
         </button>
@@ -110,15 +124,15 @@
       </div>
     </section>
 
-    <!-- View 2: Chi tiết ảnh trong 1 Album -->
+    <!-- View 2: Chi tiết thư mục / album -->
     <section id="photosView" class="hidden">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b" style="border-color: var(--border-color);">
         <div>
-          <button onclick="showAlbumList()" class="accent-text hover:opacity-80 text-sm font-medium flex items-center gap-2 mb-2 transition">
-            <i class="fa-solid fa-arrow-left"></i> Quay lại danh sách Album
+          <button onclick="handleBackNavigation()" class="accent-text hover:opacity-80 text-sm font-medium flex items-center gap-2 mb-2 transition">
+            <i class="fa-solid fa-arrow-left"></i> <span id="backLabel">Quay lại danh sách Album</span>
           </button>
           <h2 id="currentAlbumTitle" class="text-2xl font-bold">Tên Album</h2>
-          <p id="currentAlbumMeta" class="text-sm mt-1" style="color: var(--text-secondary);">0 ảnh</p>
+          <p id="currentAlbumMeta" class="text-sm mt-1" style="color: var(--text-secondary);">0 mục</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
@@ -129,11 +143,22 @@
         </div>
       </div>
 
+      <div id="subFoldersSection" class="hidden mb-8">
+        <h3 class="text-sm font-semibold uppercase tracking-wider mb-3" style="color: var(--text-secondary);">Thư mục con</h3>
+        <div id="subFoldersGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+      </div>
+
       <div id="photosGrid" class="photo-grid"></div>
     </section>
   </main>
 
-  <!-- Lightbox Xem Ảnh Phóng To -->
+  <!-- Nút Logo Facebook cố định góc dưới bên phải -->
+  <a id="floatingFbBtn" href="#" target="_blank" rel="noopener" title="Fanpage Facebook"
+    class="hidden fixed bottom-5 right-5 z-40 w-12 h-12 rounded-full bg-[#1877F2] hover:bg-[#1565D8] text-white shadow-xl shadow-black/40 flex items-center justify-center text-2xl transition hover:scale-105">
+    <i class="fa-brands fa-facebook-f"></i>
+  </a>
+
+  <!-- Lightbox Xem Ảnh / Phát Video Phóng To -->
   <div id="lightbox" class="fixed inset-0 z-50 bg-black/95 hidden flex flex-col justify-between select-none">
     <div class="flex items-center justify-between p-4 text-white bg-gradient-to-b from-black/80 to-transparent">
       <div class="text-sm">
@@ -142,7 +167,7 @@
       </div>
       <div class="flex items-center gap-3">
         <a id="lbDownloadBtn" href="#" target="_blank" class="accent-bg hover:opacity-90 font-semibold px-3.5 py-1.5 rounded-lg text-sm flex items-center gap-2 transition">
-          <i class="fa-solid fa-download"></i> Tải ảnh gốc
+          <i class="fa-solid fa-download"></i> Tải file gốc
         </a>
         <button onclick="closeLightbox()" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-lg transition">
           <i class="fa-solid fa-xmark"></i>
@@ -155,11 +180,35 @@
         <i class="fa-solid fa-chevron-left"></i>
       </button>
       
-      <img id="lbImage" src="" alt="Preview" class="max-h-[82vh] max-w-[92vw] object-contain rounded shadow-2xl transition-opacity duration-200">
+      <img id="lbImage" src="" alt="Preview" class="max-h-[82vh] max-w-[92vw] object-contain rounded shadow-2xl transition-opacity duration-200 hidden">
+      <iframe id="lbVideo" src="" allow="autoplay; fullscreen" allowfullscreen class="w-full max-w-4xl aspect-video rounded shadow-2xl bg-black hidden"></iframe>
       
       <button onclick="nextPhoto()" class="absolute right-3 z-10 w-11 h-11 rounded-full bg-black/60 hover:bg-white/20 text-white flex items-center justify-center transition">
         <i class="fa-solid fa-chevron-right"></i>
       </button>
+    </div>
+  </div>
+
+  <!-- Modal Nhập Passcode Cài Đặt -->
+  <div id="passcodeModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 text-slate-100 rounded-2xl max-w-sm w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-base flex items-center gap-2">
+          <i class="fa-solid fa-lock text-amber-400"></i> Xác thực passcode cài đặt
+        </h3>
+        <button onclick="closePasscodeModal()" class="w-8 h-8 rounded-full hover:bg-slate-800 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <p class="text-xs text-slate-400 mb-3">Nhập passcode để mở bảng cài đặt hệ thống & giao diện.</p>
+      <input type="password" id="passcodeInput" inputmode="numeric" maxlength="20" placeholder="Nhập passcode..."
+        onkeydown="if(event.key==='Enter') verifyPasscode()"
+        class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500 mb-2">
+      <p id="passcodeError" class="text-xs text-red-400 min-h-[18px] mb-3"></p>
+      <div class="flex justify-end gap-2">
+        <button onclick="closePasscodeModal()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium">Hủy</button>
+        <button onclick="verifyPasscode()" class="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold">Mở cài đặt</button>
+      </div>
     </div>
   </div>
 
@@ -169,7 +218,7 @@
       <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800">
         <div class="flex items-center gap-2.5">
           <i class="fa-solid fa-sliders text-amber-400"></i>
-          <h3 class="font-bold text-lg">Cài đặt giao diện & thương hiệu</h3>
+          <h3 class="font-bold text-lg">Cài đặt nguồn dữ liệu & giao diện</h3>
         </div>
         <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-full hover:bg-slate-800 flex items-center justify-center">
           <i class="fa-solid fa-xmark"></i>
@@ -177,9 +226,41 @@
       </div>
 
       <div class="p-6 overflow-y-auto space-y-6 text-sm">
-        <!-- Phần 1: Thông tin thương hiệu -->
+        <!-- Mục 0: Thư mục mẹ mặc định + Danh sách nhiều thư mục mẹ -->
+        <div class="p-4 rounded-xl bg-slate-800/70 border border-slate-700/80">
+          <h4 class="font-semibold text-amber-400 uppercase text-xs tracking-wider mb-3">0. Thư mục mẹ mặc định & Danh sách thư mục mẹ</h4>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-slate-300 text-xs mb-1">Link Web App Google Apps Script mặc định (/exec)</label>
+              <input type="text" id="cfgApiUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div>
+                <label class="block text-amber-300 text-xs font-semibold mb-1">Tên hiển thị thư mục mẹ mặc định</label>
+                <input type="text" id="cfgDefaultFolderName" placeholder="VD: CYD Media 2025-2026" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs">
+              </div>
+              <div>
+                <label class="block text-amber-300 text-xs font-semibold mb-1">ID hoặc Link thư mục mẹ mặc định (luôn hiện trước)</label>
+                <input type="text" id="cfgDefaultFolder" placeholder="Dán ID hoặc link thư mục mẹ chính" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs">
+              </div>
+            </div>
+
+            <!-- Danh sách nhiều thư mục mẹ (thêm / sửa / xóa) -->
+            <div class="pt-3 border-t border-slate-700/80">
+              <div class="flex items-center justify-between mb-2">
+                <label class="block text-slate-200 text-xs font-semibold">Danh sách thư mục mẹ khác (để lọc trên web)</label>
+                <button type="button" onclick="addParentFolderRow()" class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-medium flex items-center gap-1">
+                  <i class="fa-solid fa-plus"></i> Thêm thư mục mẹ
+                </button>
+              </div>
+              <div id="parentFoldersEditorList" class="space-y-2"></div>
+            </div>
+          </div>
+        </div>
+
         <div>
-          <h4 class="font-semibold text-amber-400 uppercase text-xs tracking-wider mb-3">1. Thông tin thương hiệu</h4>
+          <h4 class="font-semibold text-amber-400 uppercase text-xs tracking-wider mb-3">1. Thông tin thương hiệu & Fanpage</h4>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-slate-400 text-xs mb-1">Tên trang / Studio</label>
@@ -194,17 +275,20 @@
               <input type="text" id="cfgLogo" placeholder="Để trống nếu dùng icon máy ảnh mặc định" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white">
             </div>
             <div>
-              <label class="block text-slate-400 text-xs mb-1">Link liên hệ (Facebook / Zalo)</label>
-              <input type="text" id="cfgContactUrl" placeholder="https://facebook.com/..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white">
+              <label class="block text-slate-400 text-xs mb-1">Link Fanpage Facebook (hiện logo góc dưới)</label>
+              <input type="text" id="cfgFbPage" placeholder="https://facebook.com/tenpagecuaanh" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white">
             </div>
             <div>
+              <label class="block text-slate-400 text-xs mb-1">Link liên hệ khác (Facebook / Zalo)</label>
+              <input type="text" id="cfgContactUrl" placeholder="https://facebook.com/..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white">
+            </div>
+            <div class="sm:col-span-2">
               <label class="block text-slate-400 text-xs mb-1">Chữ chân trang (Footer)</label>
               <input type="text" id="cfgFooter" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white">
             </div>
           </div>
         </div>
 
-        <!-- Phần 2: Hệ thống màu sắc -->
         <div class="pt-4 border-t border-slate-800">
           <h4 class="font-semibold text-amber-400 uppercase text-xs tracking-wider mb-3">2. Hệ thống màu nền & điểm nhấn</h4>
           <div class="flex flex-wrap gap-2 mb-4">
@@ -245,7 +329,6 @@
           </div>
         </div>
 
-        <!-- Phần 3: Ảnh nền -->
         <div class="pt-4 border-t border-slate-800">
           <h4 class="font-semibold text-amber-400 uppercase text-xs tracking-wider mb-3">3. Ảnh nền trang web (Tùy chọn)</h4>
           <div class="space-y-3">
@@ -268,8 +351,8 @@
         <span id="saveStatus" class="text-xs text-slate-400"></span>
         <div class="flex items-center gap-3">
           <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium">Đóng</button>
-          <button id="saveCfgBtn" onclick="saveConfigToServer()" class="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-2">
-            <i class="fa-solid fa-cloud-arrow-up"></i> Lưu cho toàn bộ khách
+          <button id="saveCfgBtn" onclick="saveConfigAndReload()" class="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu & Tải lại
           </button>
         </div>
       </div>
@@ -287,12 +370,22 @@
   </footer>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbykHI_nxo-dZO6-Un7Gw4NFhsLLg4xpy0F25v6xdm32bH2AQo5bSKceLPFR7wpnxjwW9w/exec';
+    // =========================================================================
+    // DÁN ID THƯ MỤC MẸ MẶC ĐỊNH VÀO DÒNG DƯỚI ĐÂY (hoặc sửa trong Cài đặt 2249)
+    // =========================================================================
+    const DEFAULT_ROOT_FOLDER_ID = '1rIhAypKT3iIW9Tg1N2prgcDGq4PG9aDb';
+    const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbykHI_nxo-dZO6-Un7Gw4NFhsLLg4xpy0F25v6xdm32bH2AQo5bSKceLPFR7wpnxjwW9w/exec';
+    const SETTINGS_PASSCODE = '2249';
 
     const DEFAULT_CONFIG = {
+      apiUrl: DEFAULT_API_URL,
+      defaultFolderName: 'Thư mục mẹ mặc định',
+      defaultFolder: DEFAULT_ROOT_FOLDER_ID,
+      parentFolders: [],
       title: 'CYD MEDIA',
       subtitle: 'Hệ thống trả ảnh chất lượng cao',
       logo: '',
+      fbPage: '',
       contactUrl: '',
       footer: '© 2026 CYD Media Photography. Ảnh được lưu trữ an toàn trên Google Drive.',
       bgColor: '#0f172a',
@@ -310,35 +403,206 @@
       emeraldNight: { bgColor: '#06201a', accentColor: '#34d399', textColor: '#ecfdf5', themeMode: 'dark' }
     };
 
-    let currentConfig = { ...DEFAULT_CONFIG };
+    let currentConfig = { ...DEFAULT_CONFIG, parentFolders: [] };
+    let settingsUnlocked = false;
     let allAlbums = [];
+    let folderStack = [];
     let currentPhotos = [];
     let currentPhotoIndex = 0;
 
     const getThumbUrl = (id, width = 800) => `https://lh3.googleusercontent.com/d/${id}=w${width}`;
+    const getVideoPreviewUrl = (id) => `https://drive.google.com/file/d/${id}/preview`;
     const getDownloadUrl = (id) => `https://drive.google.com/uc?export=download&id=${id}`;
 
-    // Chuyển đổi link hoặc ID Drive thành link ảnh trực tiếp
+    function getSelectedParentEntry() {
+      const selVal = document.getElementById('folderFilterSelect').value;
+      if (!selVal || selVal === '__default__') return null;
+      const idx = Number(selVal);
+      const list = Array.isArray(currentConfig.parentFolders) ? currentConfig.parentFolders : [];
+      return list[idx] || null;
+    }
+
+    function getActiveApiUrl() {
+      const selected = getSelectedParentEntry();
+      if (selected && selected.apiUrl && selected.apiUrl.trim()) {
+        return selected.apiUrl.trim();
+      }
+      const url = (currentConfig.apiUrl || DEFAULT_API_URL).trim();
+      return url || DEFAULT_API_URL;
+    }
+
+    function extractDriveId(input) {
+      if (!input) return '';
+      const val = input.trim();
+      const folderMatch = val.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+      if (folderMatch) return folderMatch[1];
+      const fileMatch = val.match(/\/d\/([a-zA-Z0-9_-]+)/) || val.match(/id=([a-zA-Z0-9_-]+)/);
+      if (fileMatch) return fileMatch[1];
+      return val;
+    }
+
+    function buildApiUrl(paramsObj) {
+      const base = getActiveApiUrl();
+      const search = new URLSearchParams(paramsObj);
+      const selected = getSelectedParentEntry();
+      const rawFolder = selected
+        ? selected.folder
+        : (currentConfig.defaultFolder || DEFAULT_ROOT_FOLDER_ID);
+      const folderId = extractDriveId(rawFolder);
+      if (folderId && !search.has('rootId')) {
+        search.set('rootId', folderId);
+      }
+      const sep = base.includes('?') ? '&' : '?';
+      return `${base}${sep}${search.toString()}`;
+    }
+
+    function updateActiveParentLabel() {
+      const selected = getSelectedParentEntry();
+      const defaultName = (currentConfig.defaultFolderName || '').trim() || 'Thư mục mẹ mặc định';
+      const labelEl = document.getElementById('activeParentLabel');
+      if (selected) {
+        labelEl.textContent = `Đang xem thư mục mẹ: ${selected.name || 'Thư mục đã chọn'}`;
+      } else {
+        labelEl.textContent = `Đang xem thư mục mẹ mặc định: ${defaultName}`;
+      }
+    }
+
+    // Ô lọc luôn hiển thị thư mục mẹ mặc định đầu tiên, kèm các thư mục mẹ khác
+    function renderParentFolderFilterDropdown() {
+      const select = document.getElementById('folderFilterSelect');
+      const prevVal = select.value;
+      const defaultName = (currentConfig.defaultFolderName || '').trim() || 'Thư mục mẹ mặc định';
+      const list = Array.isArray(currentConfig.parentFolders) ? currentConfig.parentFolders : [];
+
+      select.innerHTML = '';
+      const defaultOpt = document.createElement('option');
+      defaultOpt.value = '__default__';
+      defaultOpt.style.background = '#0f172a';
+      defaultOpt.style.color = '#f8fafc';
+      defaultOpt.textContent = `★ ${defaultName}`;
+      select.appendChild(defaultOpt);
+
+      list.forEach((item, idx) => {
+        const opt = document.createElement('option');
+        opt.value = String(idx);
+        opt.style.background = '#0f172a';
+        opt.style.color = '#f8fafc';
+        opt.textContent = (item && item.name && item.name.trim()) ? item.name.trim() : `Thư mục mẹ ${idx + 1}`;
+        select.appendChild(opt);
+      });
+
+      if (prevVal && Array.from(select.options).some(o => o.value === prevVal)) {
+        select.value = prevVal;
+      } else {
+        select.value = '__default__';
+      }
+
+      updateActiveParentLabel();
+    }
+
+    async function onParentFolderFilterChange() {
+      updateActiveParentLabel();
+      showAlbumList();
+      await loadAlbums(true);
+    }
+
+    // Trình quản lý thêm / sửa / xóa nhiều thư mục mẹ trong cài đặt
+    function renderParentFoldersEditor(foldersList) {
+      const container = document.getElementById('parentFoldersEditorList');
+      container.innerHTML = '';
+      const arr = Array.isArray(foldersList) ? foldersList : [];
+
+      if (arr.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400">Chưa thêm thư mục mẹ nào khác. Bấm <b>Thêm thư mục mẹ</b> để thêm.</p>`;
+        return;
+      }
+
+      arr.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = 'p-2.5 rounded-lg bg-slate-900/90 border border-slate-700 space-y-2';
+        row.innerHTML = `
+          <div class="flex items-center gap-2">
+            <input type="text" data-pf-name="${idx}" value="${(item.name || '').replace(/"/g, '&quot;')}"
+              placeholder="Tên thư mục mẹ (VD: Sự kiện 2026)"
+              class="flex-1 bg-slate-800 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-white">
+            <button type="button" onclick="removeParentFolderRow(${idx})" title="Xóa thư mục mẹ này"
+              class="px-2.5 py-1.5 rounded bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40 text-xs">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <input type="text" data-pf-folder="${idx}" value="${(item.folder || '').replace(/"/g, '&quot;')}"
+              placeholder="Link hoặc ID thư mục mẹ trên Drive"
+              class="bg-slate-800 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-white">
+            <input type="text" data-pf-api="${idx}" value="${(item.apiUrl || '').replace(/"/g, '&quot;')}"
+              placeholder="Link /exec riêng (để trống dùng mặc định)"
+              class="bg-slate-800 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-white">
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function readParentFoldersFromEditor() {
+      const container = document.getElementById('parentFoldersEditorList');
+      const nameInputs = container.querySelectorAll('[data-pf-name]');
+      const result = [];
+      nameInputs.forEach(inp => {
+        const idx = inp.getAttribute('data-pf-name');
+        const name = inp.value.trim();
+        const folder = (container.querySelector(`[data-pf-folder="${idx}"]`)?.value || '').trim();
+        const apiUrl = (container.querySelector(`[data-pf-api="${idx}"]`)?.value || '').trim();
+        if (name || folder || apiUrl) {
+          result.push({ name: name || 'Thư mục mẹ', folder, apiUrl });
+        }
+      });
+      return result;
+    }
+
+    function addParentFolderRow() {
+      const currentRows = readParentFoldersFromEditor();
+      currentRows.push({ name: '', folder: '', apiUrl: '' });
+      renderParentFoldersEditor(currentRows);
+    }
+
+    function removeParentFolderRow(indexToRemove) {
+      const currentRows = readParentFoldersFromEditor();
+      currentRows.splice(indexToRemove, 1);
+      renderParentFoldersEditor(currentRows);
+    }
+
     function resolveImageUrl(input, width = 1600) {
       if (!input) return '';
       const val = input.trim();
       if (val.startsWith('http://') || val.startsWith('https://')) {
-        const match = val.match(/\/d\/([a-zA-Z0-9_-]+)/) || val.match(/id=([a-zA-Z0-9_-]+)/);
-        if (match) return getThumbUrl(match[1], width);
+        const id = extractDriveId(val);
+        if (id && (val.includes('drive.google.com') || val.includes('docs.google.com'))) {
+          return getThumbUrl(id, width);
+        }
         return val;
       }
       return getThumbUrl(val, width);
     }
 
     function hexToRgb(hex) {
-      const clean = hex.replace('#', '');
+      const clean = (hex || '#0f172a').replace('#', '');
       const num = parseInt(clean, 16);
+      if (Number.isNaN(num)) return '15, 23, 42';
       return `${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}`;
     }
 
-    // Áp dụng cấu hình lên giao diện
     function applyConfig(cfg) {
-      currentConfig = { ...DEFAULT_CONFIG, ...cfg };
+      currentConfig = {
+        ...DEFAULT_CONFIG,
+        ...cfg,
+        parentFolders: Array.isArray(cfg && cfg.parentFolders) ? cfg.parentFolders : []
+      };
+      if (!currentConfig.apiUrl) currentConfig.apiUrl = DEFAULT_API_URL;
+      if (!currentConfig.defaultFolder) currentConfig.defaultFolder = DEFAULT_ROOT_FOLDER_ID;
+      if (!currentConfig.defaultFolderName) currentConfig.defaultFolderName = 'Thư mục mẹ mặc định';
+
+      renderParentFolderFilterDropdown();
+
       const root = document.documentElement;
       const isLight = currentConfig.themeMode === 'light';
 
@@ -375,6 +639,15 @@
         logoBox.classList.add('accent-bg');
       }
 
+      const fbBtn = document.getElementById('floatingFbBtn');
+      const fbUrl = (currentConfig.fbPage || '').trim();
+      if (fbUrl) {
+        fbBtn.href = fbUrl;
+        fbBtn.classList.remove('hidden');
+      } else {
+        fbBtn.classList.add('hidden');
+      }
+
       const contactWrap = document.getElementById('footerContact');
       if (currentConfig.contactUrl) {
         contactWrap.classList.remove('hidden');
@@ -384,10 +657,37 @@
       }
     }
 
-    // Kích hoạt chế độ Admin (bấm 5 lần vào logo hoặc thêm ?admin=1)
+    function requestSettingsAccess() {
+      if (settingsUnlocked) {
+        openSettingsModal();
+        return;
+      }
+      document.getElementById('passcodeInput').value = '';
+      document.getElementById('passcodeError').textContent = '';
+      document.getElementById('passcodeModal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('passcodeInput').focus(), 50);
+    }
+
+    function closePasscodeModal() {
+      document.getElementById('passcodeModal').classList.add('hidden');
+    }
+
+    function verifyPasscode() {
+      const entered = document.getElementById('passcodeInput').value.trim();
+      if (entered === SETTINGS_PASSCODE) {
+        settingsUnlocked = true;
+        closePasscodeModal();
+        openSettingsModal();
+      } else {
+        document.getElementById('passcodeError').textContent = 'Passcode không đúng.';
+      }
+    }
+
     let clickCount = 0;
     let clickTimer = null;
     document.getElementById('brandTrigger').addEventListener('click', () => {
+      document.getElementById('folderFilterSelect').value = '__default__';
+      updateActiveParentLabel();
       showAlbumList();
       clickCount++;
       clearTimeout(clickTimer);
@@ -395,14 +695,19 @@
       if (clickCount >= 5) {
         clickCount = 0;
         document.getElementById('openSettingsBtn').classList.remove('hidden');
-        openSettingsModal();
+        requestSettingsAccess();
       }
     });
 
     function openSettingsModal() {
+      document.getElementById('cfgApiUrl').value = currentConfig.apiUrl || DEFAULT_API_URL;
+      document.getElementById('cfgDefaultFolderName').value = currentConfig.defaultFolderName || 'Thư mục mẹ mặc định';
+      document.getElementById('cfgDefaultFolder').value = currentConfig.defaultFolder || DEFAULT_ROOT_FOLDER_ID;
+      renderParentFoldersEditor(currentConfig.parentFolders || []);
       document.getElementById('cfgTitle').value = currentConfig.title;
       document.getElementById('cfgSubtitle').value = currentConfig.subtitle;
       document.getElementById('cfgLogo').value = currentConfig.logo;
+      document.getElementById('cfgFbPage').value = currentConfig.fbPage || '';
       document.getElementById('cfgContactUrl').value = currentConfig.contactUrl;
       document.getElementById('cfgFooter').value = currentConfig.footer;
       document.getElementById('cfgBgColor').value = currentConfig.bgColor;
@@ -413,6 +718,7 @@
       document.getElementById('cfgBgOpacity').value = currentConfig.bgOpacity;
       document.getElementById('overlayVal').textContent = currentConfig.bgOpacity + '%';
       document.getElementById('saveStatus').textContent = '';
+      document.getElementById('saveStatus').className = 'text-xs text-slate-400';
       document.getElementById('settingsModal').classList.remove('hidden');
     }
 
@@ -430,13 +736,17 @@
       previewFromInputs();
     }
 
-    function previewFromInputs() {
+    function collectConfigFromForm() {
       const opacity = document.getElementById('cfgBgOpacity').value;
-      document.getElementById('overlayVal').textContent = opacity + '%';
-      applyConfig({
+      return {
+        apiUrl: (document.getElementById('cfgApiUrl').value || DEFAULT_API_URL).trim(),
+        defaultFolderName: (document.getElementById('cfgDefaultFolderName').value || '').trim() || 'Thư mục mẹ mặc định',
+        defaultFolder: (document.getElementById('cfgDefaultFolder').value || DEFAULT_ROOT_FOLDER_ID).trim(),
+        parentFolders: readParentFoldersFromEditor(),
         title: document.getElementById('cfgTitle').value || DEFAULT_CONFIG.title,
         subtitle: document.getElementById('cfgSubtitle').value,
         logo: document.getElementById('cfgLogo').value,
+        fbPage: (document.getElementById('cfgFbPage').value || '').trim(),
         contactUrl: document.getElementById('cfgContactUrl').value,
         footer: document.getElementById('cfgFooter').value,
         bgColor: document.getElementById('cfgBgColor').value,
@@ -445,51 +755,55 @@
         themeMode: document.getElementById('cfgThemeMode').value,
         bgImage: document.getElementById('cfgBgImage').value,
         bgOpacity: Number(opacity)
-      });
+      };
     }
 
-    async function saveConfigToServer() {
-      previewFromInputs();
+    function previewFromInputs() {
+      const cfg = collectConfigFromForm();
+      document.getElementById('overlayVal').textContent = cfg.bgOpacity + '%';
+      applyConfig(cfg);
+    }
+
+    async function saveConfigAndReload() {
+      const cfg = collectConfigFromForm();
+      applyConfig(cfg);
+      localStorage.setItem('cyd_web_config_cache', JSON.stringify(cfg));
+
       const btn = document.getElementById('saveCfgBtn');
       const status = document.getElementById('saveStatus');
       btn.disabled = true;
-      status.textContent = 'Đang lưu cấu hình lên Google Drive...';
+      status.textContent = 'Đã lưu trên trình duyệt, đang đồng bộ & tải lại album...';
+      status.className = 'text-xs text-amber-400';
 
       try {
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'saveConfig', config: currentConfig })
-        });
+        const encoded = encodeURIComponent(JSON.stringify(cfg));
+        const res = await fetch(`${(cfg.apiUrl || DEFAULT_API_URL).trim()}?action=saveConfig&config=${encoded}`);
         const json = await res.json();
         if (json.status === 'success') {
-          localStorage.setItem('cyd_web_config_cache', JSON.stringify(currentConfig));
-          status.textContent = 'Đã lưu thành công! Mọi khách truy cập sẽ thấy giao diện này.';
+          status.textContent = 'Đã lưu cả trên trình duyệt và Drive!';
           status.className = 'text-xs text-emerald-400';
-        } else {
-          status.textContent = 'Lỗi lưu: ' + json.message;
-          status.className = 'text-xs text-red-400';
         }
-      } catch (err) {
-        status.textContent = 'Không thể lưu lên server. Anh nhớ triển khai lại phiên bản mới ở Apps Script nhé!';
-        status.className = 'text-xs text-red-400';
-      } finally {
-        btn.disabled = false;
+      } catch (e) {
+        status.textContent = 'Đã áp dụng cho trình duyệt này (bỏ qua lỗi đồng bộ server).';
+        status.className = 'text-xs text-slate-300';
       }
+
+      closeSettingsModal();
+      await loadAlbums(true);
+      btn.disabled = false;
     }
 
-    async function loadWebConfig() {
+    function loadSavedLocalConfig() {
       const cached = localStorage.getItem('cyd_web_config_cache');
       if (cached) {
-        try { applyConfig(JSON.parse(cached)); } catch (e) {}
-      }
-      try {
-        const res = await fetch(`${API_URL}?action=getConfig`);
-        const json = await res.json();
-        if (json.status === 'success' && json.data) {
-          applyConfig(json.data);
-          localStorage.setItem('cyd_web_config_cache', JSON.stringify(json.data));
+        try {
+          applyConfig(JSON.parse(cached));
+        } catch (e) {
+          renderParentFolderFilterDropdown();
         }
-      } catch (e) {}
+      } else {
+        renderParentFolderFilterDropdown();
+      }
     }
 
     function removeAccents(str) {
@@ -502,7 +816,7 @@
         document.getElementById('openSettingsBtn').classList.remove('hidden');
       }
 
-      loadWebConfig();
+      loadSavedLocalConfig();
 
       const albumId = urlParams.get('album');
       if (albumId) {
@@ -513,26 +827,32 @@
     });
 
     async function loadAlbums(forceRefresh = false) {
+      folderStack = [];
+      updateActiveParentLabel();
       showLoader('Đang tải danh sách album...');
       document.getElementById('albumsView').classList.add('hidden');
       document.getElementById('photosView').classList.add('hidden');
       document.getElementById('searchContainer').classList.remove('hidden');
+      document.getElementById('folderFilterContainer').classList.remove('hidden');
 
       try {
-        const url = `${API_URL}?action=getAlbums${forceRefresh ? '&refresh=true' : ''}`;
-        const res = await fetch(url);
+        const params = { action: 'getAlbums' };
+        if (forceRefresh) params.refresh = 'true';
+        const res = await fetch(buildApiUrl(params));
         const json = await res.json();
 
         if (json.status === 'success') {
-          allAlbums = json.data;
+          allAlbums = json.data || [];
           renderAlbums(allAlbums);
           hideLoader();
           document.getElementById('albumsView').classList.remove('hidden');
         } else {
+          hideLoader();
           alert('Lỗi tải dữ liệu: ' + json.message);
         }
       } catch (err) {
-        alert('Không thể kết nối đến máy chủ. Anh kiểm tra lại link Web App nhé!');
+        hideLoader();
+        alert('Không thể kết nối đến link Apps Script. Anh bấm 5 lần vào logo để kiểm tra lại link nhé!');
       }
     }
 
@@ -553,19 +873,22 @@
         card.className = 'group glass rounded-2xl overflow-hidden cursor-pointer accent-border transition duration-300 flex flex-col';
         card.onclick = () => openAlbum(album.id);
 
+        const coverHtml = album.coverId
+          ? `<img src="${getThumbUrl(album.coverId, 700)}" alt="${album.name}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">`
+          : `<div class="w-full h-full flex items-center justify-center text-4xl opacity-40"><i class="fa-solid fa-folder-open"></i></div>`;
+
         card.innerHTML = `
           <div class="relative aspect-[4/3] overflow-hidden bg-slate-800">
-            <img src="${getThumbUrl(album.coverId, 700)}" alt="${album.name}" loading="lazy"
-              class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+            ${coverHtml}
             <div class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5">
-              <i class="fa-regular fa-images accent-text"></i> ${album.count} ảnh
+              <i class="fa-regular fa-images accent-text"></i> ${album.count} mục
             </div>
           </div>
           <div class="p-4 flex-1 flex flex-col justify-between">
             <h3 class="font-bold text-base transition line-clamp-2">${album.name}</h3>
             <div class="flex items-center justify-between mt-3 pt-3 border-t text-xs" style="border-color: var(--border-color); color: var(--text-secondary);">
               <span><i class="fa-regular fa-calendar mr-1"></i> ${album.dateFormatted}</span>
-              <span class="accent-text font-medium">Xem ảnh <i class="fa-solid fa-arrow-right ml-1"></i></span>
+              <span class="accent-text font-medium">Xem album <i class="fa-solid fa-arrow-right ml-1"></i></span>
             </div>
           </div>
         `;
@@ -579,37 +902,89 @@
       renderAlbums(filtered);
     });
 
-    async function openAlbum(folderId) {
+    async function openAlbum(folderId, pushToStack = true) {
+      if (pushToStack) {
+        const currentTop = folderStack[folderStack.length - 1];
+        if (!currentTop || currentTop.id !== folderId) {
+          folderStack.push({ id: folderId, name: '' });
+        }
+      }
+
       const url = new URL(window.location);
       url.searchParams.set('album', folderId);
       window.history.pushState({}, '', url);
-      
-      showLoader('Đang mở album ảnh...');
+
+      document.getElementById('backLabel').textContent = folderStack.length > 1
+        ? 'Quay lại thư mục trước'
+        : 'Quay lại danh sách Album';
+
+      showLoader('Đang tải nội dung thư mục...');
       document.getElementById('albumsView').classList.add('hidden');
       document.getElementById('photosView').classList.add('hidden');
       document.getElementById('searchContainer').classList.add('hidden');
 
       try {
-        const res = await fetch(`${API_URL}?action=getPhotos&folderId=${folderId}`);
+        const res = await fetch(buildApiUrl({ action: 'getPhotos', folderId }));
         const json = await res.json();
 
         if (json.status === 'success') {
-          currentPhotos = json.data;
+          if (folderStack.length > 0) {
+            folderStack[folderStack.length - 1].name = json.albumName;
+          }
+          const subFolders = json.folders || [];
+          currentPhotos = json.data || [];
+
           document.getElementById('currentAlbumTitle').textContent = json.albumName;
-          document.getElementById('currentAlbumMeta').textContent = `Tổng cộng ${currentPhotos.length} ảnh chất lượng cao`;
+          document.getElementById('currentAlbumMeta').textContent =
+            `${subFolders.length} thư mục con · ${currentPhotos.length} ảnh & video`;
           document.getElementById('openDriveBtn').href = json.driveUrl;
 
+          renderSubFolders(subFolders);
           renderPhotos(currentPhotos);
           hideLoader();
           document.getElementById('photosView').classList.remove('hidden');
           window.scrollTo(0, 0);
         } else {
-          alert('Không tìm thấy album này!');
+          hideLoader();
+          alert('Không tìm thấy thư mục này!');
           showAlbumList();
         }
       } catch (err) {
-        alert('Lỗi kết nối khi tải ảnh!');
+        hideLoader();
+        alert('Lỗi kết nối khi tải nội dung!');
       }
+    }
+
+    function renderSubFolders(folders) {
+      const section = document.getElementById('subFoldersSection');
+      const grid = document.getElementById('subFoldersGrid');
+      grid.innerHTML = '';
+
+      if (!folders || folders.length === 0) {
+        section.classList.add('hidden');
+        return;
+      }
+
+      section.classList.remove('hidden');
+      folders.forEach(sub => {
+        const card = document.createElement('div');
+        card.className = 'glass rounded-xl p-3.5 cursor-pointer accent-border transition flex items-center justify-between gap-3';
+        card.onclick = () => openAlbum(sub.id, true);
+
+        card.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-lg accent-bg flex items-center justify-center text-base shrink-0">
+              <i class="fa-solid fa-folder"></i>
+            </div>
+            <div class="min-w-0">
+              <p class="font-semibold text-sm truncate">${sub.name}</p>
+              <p class="text-xs" style="color: var(--text-secondary);">${sub.count} mục</p>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right text-xs opacity-60 shrink-0"></i>
+        `;
+        grid.appendChild(card);
+      });
     }
 
     function renderPhotos(photos) {
@@ -621,15 +996,25 @@
         item.className = 'photo-item relative group rounded-xl overflow-hidden bg-slate-800 border';
         item.style.borderColor = 'var(--border-color)';
 
+        const isVideo = photo.type === 'video';
+        const previewMediaHtml = isVideo
+          ? `<div onclick="openLightbox(${index})" class="cursor-pointer relative bg-slate-900 aspect-video flex flex-col items-center justify-center p-4 text-center">
+               <div class="w-12 h-12 rounded-full accent-bg flex items-center justify-center text-lg mb-2 shadow-lg">
+                 <i class="fa-solid fa-play ml-0.5"></i>
+               </div>
+               <span class="text-xs font-semibold text-white line-clamp-2">${photo.name}</span>
+               <span class="text-[11px] text-slate-400 mt-1">${photo.size} · Video</span>
+             </div>`
+          : `<img src="${getThumbUrl(photo.id, 600)}" alt="${photo.name}" loading="lazy"
+               onclick="openLightbox(${index})"
+               class="w-full h-auto block cursor-zoom-in group-hover:opacity-90 transition">`;
+
         item.innerHTML = `
-          <img src="${getThumbUrl(photo.id, 600)}" alt="${photo.name}" loading="lazy"
-            onclick="openLightbox(${index})"
-            class="w-full h-auto block cursor-zoom-in group-hover:opacity-90 transition">
-          
-          <div class="absolute inset-x-0 bottom-0 p-2.5 bg-gradient-to-t from-black/85 via-black/40 to-transparent opacity-100 sm:opacity-0 group-hover:opacity-100 transition flex items-center justify-between">
-            <span class="text-[11px] text-slate-200 truncate max-w-[65%]">${photo.name}</span>
-            <a href="${getDownloadUrl(photo.id)}" target="_blank" title="Tải ảnh gốc (${photo.size})"
-              class="accent-bg hover:opacity-90 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shadow transition">
+          ${previewMediaHtml}
+          <div class="p-2.5 flex items-center justify-between gap-2" style="background: rgba(15, 23, 42, 0.85);">
+            <span class="text-[11px] text-slate-200 truncate">${isVideo ? '<i class="fa-solid fa-video accent-text mr-1"></i>' : ''}${photo.name}</span>
+            <a href="${getDownloadUrl(photo.id)}" target="_blank" title="Tải file gốc (${photo.size})"
+              class="accent-bg hover:opacity-90 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shadow transition shrink-0">
               <i class="fa-solid fa-download"></i>
             </a>
           </div>
@@ -638,7 +1023,18 @@
       });
     }
 
+    function handleBackNavigation() {
+      if (folderStack.length > 1) {
+        folderStack.pop();
+        const prevFolder = folderStack[folderStack.length - 1];
+        openAlbum(prevFolder.id, false);
+      } else {
+        showAlbumList();
+      }
+    }
+
     function showAlbumList() {
+      folderStack = [];
       const url = new URL(window.location);
       url.searchParams.delete('album');
       window.history.pushState({}, '', url);
@@ -647,6 +1043,7 @@
         document.getElementById('photosView').classList.add('hidden');
         document.getElementById('albumsView').classList.remove('hidden');
         document.getElementById('searchContainer').classList.remove('hidden');
+        document.getElementById('folderFilterContainer').classList.remove('hidden');
       } else {
         loadAlbums();
       }
@@ -660,6 +1057,7 @@
     }
 
     function closeLightbox() {
+      document.getElementById('lbVideo').src = '';
       document.getElementById('lightbox').classList.add('hidden');
       document.body.style.overflow = 'auto';
     }
@@ -667,9 +1065,21 @@
     function updateLightbox() {
       const photo = currentPhotos[currentPhotoIndex];
       const img = document.getElementById('lbImage');
-      img.style.opacity = '0.4';
-      img.src = getThumbUrl(photo.id, 1800);
-      img.onload = () => { img.style.opacity = '1'; };
+      const vid = document.getElementById('lbVideo');
+
+      if (photo.type === 'video') {
+        img.classList.add('hidden');
+        img.src = '';
+        vid.classList.remove('hidden');
+        vid.src = getVideoPreviewUrl(photo.id);
+      } else {
+        vid.classList.add('hidden');
+        vid.src = '';
+        img.classList.remove('hidden');
+        img.style.opacity = '0.4';
+        img.src = getThumbUrl(photo.id, 1800);
+        img.onload = () => { img.style.opacity = '1'; };
+      }
 
       document.getElementById('lbCounter').textContent = `${currentPhotoIndex + 1} / ${currentPhotos.length}`;
       document.getElementById('lbName').textContent = `${photo.name} (${photo.size})`;
